@@ -11,7 +11,7 @@
 #ifndef _FREETARGET_H
 #define _FREETARGET_H
 
-#define SOFTWARE_VERSION "\"3.01.9 June 15, 2021\""
+#define SOFTWARE_VERSION "\"3.02.0 June 14, 2021\""
 #define REV_100    100
 #define REV_210    210
 #define REV_220    220
@@ -29,7 +29,7 @@
 
 #define PRINT(x)  {Serial.print(x); AUX_SERIAL.print(x); DISPLAY_SERIAL.print(x);}
 #define GET(ch)   {if ( Serial.available() )              ch = Serial.read();         \
-                   else if ( AUX_SERIAL.available() )     ch = AUX_SERIAL.read();     \
+                   else if ( esp01_available() )          ch = esp01_read();          \
                    else if ( DISPLAY_SERIAL.available() ) ch = DISPLAY_SERIAL.read(); \
                    else                                   ch = 0;}
                    

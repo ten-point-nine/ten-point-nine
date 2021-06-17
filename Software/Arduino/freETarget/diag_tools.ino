@@ -63,7 +63,6 @@ void self_test(uint16_t test)
  */
   switch (test)
   {
-    default:                                    // Undefined test
       json_test = 0;                            // Force to 0 
       EEPROM.put(NONVOL_TEST_MODE, json_test);  // and fall through
       break;
@@ -71,6 +70,7 @@ void self_test(uint16_t test)
 /*
  * Test 0, Display the help
  */
+    default:                // Undefined, show the tests
     case T_HELP:                
       Serial.print("\r\n 1 - Digital inputs");
       Serial.print("\r\n 2 - Counter values (external trigger)");
@@ -196,7 +196,7 @@ void self_test(uint16_t test)
  * Test 6, Advance the paper
  */
     case T_PAPER: 
-      Serial.print("\r\nAdvanciing backer paper "); Serial.print(json_paper_time * 10); Serial.print(" ms");
+      Serial.print("\r\nAdvanciing backer paper "); Serial.print(json_paper_time * 10); Serial.print(" ms  ");Serial.print(json_paper_step); Serial.print(" steps");
       drive_paper();
       Serial.print("\r\nDone");
       json_test = T_HELP;
@@ -343,7 +343,9 @@ void self_test(uint16_t test)
     
   if ( port & PORT_AUX )
   {
+    esp01_send(true);
     AUX_SERIAL.print("\r\nfreETarget "); AUX_SERIAL.print(SOFTWARE_VERSION); AUX_SERIAL.print("\r\n");
+    esp01_send(false);
   }
     
   if ( port & PORT_DISPLAY )

@@ -31,10 +31,11 @@ void gen_position(int  v);      // Reset the position values
 #define NONVOL_LED_PWM        (NONVOL_1_RINGx10   + sizeof(int) + 2)       // LED PWM value
 #define NONVOL_SEND_MISS      (NONVOL_LED_PWM     + sizeof(int) + 2)       // Send the MISS message when true
 #define NONVOL_SERIAL_NO      (NONVOL_SEND_MISS   + sizeof(int) + 2)       // EIN
+#define NONVOL_PAPER_STEP     (NONVOL_SERIAL_NO   + sizeof(int) + 2)       // Number of paper pulse steps
 
-#define NEXT_NNONVOL          (NONVOL_SERIAL_NO   + sizeof(int) + 2)       // Last marker
-#if ( (NEXT_NONVOL) > 4096 )
-#error OUT OF NONVOL
+#define NEXT_NONVOL           (NONVOL_PAPER_STEP  + sizeof(int) + 2)       // Last marker
+#if ( ((34-14)*(2 + 2)) > 4096 )
+#error NEXT_NONVOL OUT OF NONVOL
 #endif
 
 #endif

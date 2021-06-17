@@ -64,6 +64,7 @@ const GPIO init_table[] = {
   {EOF, EOF, EOF} };
 
 void face_ISR(void);
+static void paper_on_off(bool on);        // Turn the motor on or off
 
 /*-----------------------------------------------------
  * 
@@ -448,52 +449,104 @@ void read_timers(void)
  *-----------------------------------------------------
  *
  * The function turns on the motor for the specified
- * time.
+ * time.  The motor is cycled json_paper_step times
+ * to drive a stepper motor using the same circuit.
+ * 
+ * Use an A4988 to drive te stepper in place of a DC
+ * motor
  * 
  * There is a hardare change between Version 2.2 which
  * used a transistor and 3.0 that uses a FET.
  * The driving circuit is reversed in the two boards.
  * 
  *-----------------------------------------------------*/
+ 
  void drive_paper(void)
  {
+  unsigned int i, j, k;                           // Iteration Counters
+  
+  if ( is_trace )
+  {
+    Serial.print("\r\nAdvancing paper...");
+  }
+
+/*
+ * Drive the motor on and off for the number of cycles
+ * at duration
+ */
+
+  for (i=0; i != json_paper_step; i++)            // Number of steps
+  {
+   paper_on_off(true);                            // Turn the motor on
+   
    if ( is_trace )
    {
-     Serial.print("\r\nAdvancing paper...");
-   }
-    
-   if ( revision() < REV_300 )
-   {
-     digitalWrite(PAPER, PAPER_ON);               // Advance the motor drive time
-   }
-   else
-   {
-     digitalWrite(PAPER, PAPER_ON_300);          // Advance the motor drive time
+     Serial.print("+");
    }
    
-   for (i=0; i != json_paper_time; i++ )
+   for (j=0; j != json_paper_time; j++ )          // Delay in 10 ms increments
    {
-     j = 7 * (1.0 - ((float)i / float(json_paper_time)));
-     set_LED(j & 4, j & 2, j & 1);                // Show the count going downb
-     delay(PAPER_STEP);                           // in 100ms increments
-    }
-    
-   if ( revision() < REV_300 )
-   {
-     digitalWrite(PAPER, PAPER_OFF);              // Advance the motor drive time
+     k = 7 * (1.0 - ((float)i / float(json_paper_time)));
+     set_LED(k & 4, k & 2, k & 1);                // Show the count going downb
+     delay(PAPER_STEP);                           // in 10ms increments
    }
-   else
+
+   paper_on_off(false);                           // Turn the motor off
+   
+   if ( is_trace )
    {
-     digitalWrite(PAPER, PAPER_OFF_300);          // Advance the motor drive time
-     digitalWrite(PAPER, PAPER_OFF_300);          // Advance the motor drive time
+     Serial.print("-");
    }
+
+   if ( json_paper_step == 1)                    // DC motors only have 
+   {                                              // one step, so exit
+     break;   
+   }
+
+   delay(PAPER_STEP);                             // Let the A4988 catch ujp
+  }
 
  /*
   * All done, return
   */
   return;
  }
- 
+
+static void paper_on_off                        // Function to turn the motor on and off
+  (
+  bool on                                       // on == true, turn on motor drive
+  )
+{
+  if ( on == true )
+  {
+    if ( revision() < REV_300 )                 // Rev 3.0 changed the motor sense
+    {
+      digitalWrite(PAPER, PAPER_ON);            // Turn it on
+    }
+    else
+    {
+      digitalWrite(PAPER, PAPER_ON_300);        //
+    }
+  }
+  else
+  {
+    if ( revision() < REV_300 )                 // Rev 3.0 changed the motor sense
+    {
+      digitalWrite(PAPER, PAPER_OFF);            // Turn it off
+    }
+    else
+    {
+      digitalWrite(PAPER, PAPER_OFF_300);        //
+    }
+  }
+
+/*
+ * No more, return
+ */
+  return;
+}
+
+
 /*-----------------------------------------------------
  * 
  * function: face_ISR

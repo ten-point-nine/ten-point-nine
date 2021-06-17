@@ -13,6 +13,7 @@
 #include "analog_io.h"
 #include "json.h"
 #include "arduino.h"
+#include "esp-01.h"
 
 #define THRESHOLD (0.001)
 
@@ -480,7 +481,7 @@ void send_score
   {
     Serial.print("\r\nSending the score");
   }
-   
+
  /* 
   *  Work out the hole in perfect coordinates
   */
@@ -499,6 +500,7 @@ void send_score
 /* 
  *  Display the results
  */
+  esp01_send(true);       // Turn on the IP channel (if needed)
   PRINT("\r\n{");
   
 #if ( S_SHOT )
@@ -546,7 +548,11 @@ void send_score
 #endif
 
   PRINT("}\r\n");
-  
+  esp01_send(false);
+
+/*
+ * All done, return
+ */
   return;
 }
  
@@ -573,6 +579,7 @@ void send_miss
 /* 
  *  Display the results
  */
+  esp01_send(true);              // Prime the IP channel if needed
   PRINT("\r\n{");
   
 #if ( S_SHOT )
@@ -590,7 +597,11 @@ void send_miss
 #endif
 
   PRINT("}\r\n");
-  
+  esp01_send(false);            // Flush the IP channel
+
+/*
+ * All done, go home
+ */
   return;
 }
 
