@@ -194,30 +194,33 @@ void loop()
     }
     else
     {
-      if ( sensor_status & TRIP_NORTH  )
+      if ( is_trace == false )
       {
-        Serial.print("\r\n{ \"Fault\": \"NORTH\" }");
-        set_LED(NORTH_FAILED);           // Fault code North
-        delay(ONE_SECOND);
+        if ( sensor_status & TRIP_NORTH  )
+        {
+          Serial.print("\r\n{ \"Fault\": \"NORTH\" }");
+          set_LED(NORTH_FAILED);           // Fault code North
+          delay(ONE_SECOND);
+        }
+        if ( sensor_status & TRIP_EAST  )
+        {
+          Serial.print("\r\n{ \"Fault\": \"EAST\" }");
+          set_LED(EAST_FAILED);           // Fault code East
+          delay(ONE_SECOND);
+        }
+        if ( sensor_status & TRIP_SOUTH )
+        {
+          Serial.print("\r\n{ \"Fault\": \"SOUTH\" }");
+          set_LED(SOUTH_FAILED);         // Fault code South
+          delay(ONE_SECOND);
+        }
+        if ( sensor_status & TRIP_WEST )
+        {
+          Serial.print("\r\n{ \"Fault\": \"WEST\" }");
+          set_LED(WEST_FAILED);         // Fault code West
+          delay(ONE_SECOND);
+        }     
       }
-      if ( sensor_status & TRIP_EAST  )
-      {
-        Serial.print("\r\n{ \"Fault\": \"EAST\" }");
-        set_LED(EAST_FAILED);           // Fault code East
-        delay(ONE_SECOND);
-      }
-      if ( sensor_status & TRIP_SOUTH )
-      {
-        Serial.print("\r\n{ \"Fault\": \"SOUTH\" }");
-        set_LED(SOUTH_FAILED);         // Fault code South
-        delay(ONE_SECOND);
-      }
-      if ( sensor_status & TRIP_WEST )
-      {
-        Serial.print("\r\n{ \"Fault\": \"WEST\" }");
-        set_LED(WEST_FAILED);         // Fault code West
-        delay(ONE_SECOND);
-      }     
     }
     break;
     
