@@ -32,9 +32,10 @@ void gen_position(int  v);      // Reset the position values
 #define NONVOL_SEND_MISS      (NONVOL_LED_PWM     + sizeof(int) + 2)       // Send the MISS message when true
 #define NONVOL_SERIAL_NO      (NONVOL_SEND_MISS   + sizeof(int) + 2)       // EIN
 #define NONVOL_PAPER_STEP     (NONVOL_SERIAL_NO   + sizeof(int) + 2)       // Number of paper pulse steps
+#define NONVOL_MFS            (NONVOL_PAPER_STEP  + sizeof(int) + 2)       // Multifunction switch operation 
 
-#define NEXT_NONVOL           (NONVOL_PAPER_STEP  + sizeof(int) + 2)       // Last marker
-#if ( ((34-14)*(2 + 2)) > 4096 )
+#define NEXT_NONVOL           (NONVOL_MFS         + sizeof(int) + 2) - NONVOL_INIT)
+#if ( ((35-13) * 4) > 4096 )
 #error NEXT_NONVOL OUT OF NONVOL
 #endif
 

@@ -71,7 +71,8 @@ void init_nonvol(int v)
   EEPROM.put(NONVOL_POWER_SAVE, 0);
   EEPROM.put(NONVOL_LED_PWM,    0);
   EEPROM.put(NONVOL_SEND_MISS,  0);
-
+  EEPROM.put(NONVOL_MFS,   0xFFFF);       // Multifunction must be configured
+  
 /*
  * Ask for the serial number.  Exit when you get !
  */

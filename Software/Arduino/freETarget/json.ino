@@ -36,6 +36,8 @@ int     json_power_save;            // Power down time
 int     json_send_miss;             // Send a miss message
 int     json_serial_number;         // Electonic serial number
 int     json_paper_step;            // Number of steps ouput to motor
+int     json_multifunction;         // Multifunction switch operation
+
 int     temp;                       // Temporary variable
 
 #define JSON_DEBUG false                    // TRUE to echo DEBUG messages
@@ -58,6 +60,7 @@ const json_message JSON[] = {
   {"\"ECHO\":",           &json_echo,                        0,                IS_INT16,  &show_echo,                       0  },    // Echo test
   {"\"INIT\"",            0,                                 0,                IS_VOID,   &init_nonvol,                     0  },    // Initialize the NONVOL memory
   {"\"LED_BRIGHT\":",     &json_LED_PWM,                     0,                IS_INT16,  &set_LED_PWM_now, NONVOL_LED_PWM     },    // Set the LED brightness
+  {"\"MFS\":",            &json_multifunction,               0,                IS_INT16,  0,                NONVOL_MFS         },    // Multifunction switch action
   {"\"NAME_ID\":",        &json_name_id,                     0,                IS_INT16,  &show_names,      NONVOL_NAME_ID     },    // Give the board a name
   {"\"PAPER_STEP\":",     &json_paper_step,                  0,                IS_INT16,  0,                NONVOL_PAPER_STEP  },    // Set the number of times paper motor is stepped
   {"\"PAPER_TIME\":",     &json_paper_time,                  0,                IS_INT16,  0,                NONVOL_PAPER_TIME  },    // Set the paper advance time
@@ -127,6 +130,7 @@ bool    return_value;
     return_value = true;
     
     GET(ch);
+    Serial.print(ch);
 #if ( JSON_DEBUG == true )
     PRINT(ch);
 #endif

@@ -11,7 +11,7 @@
 #ifndef _FREETARGET_H
 #define _FREETARGET_H
 
-#define SOFTWARE_VERSION "\"3.02.0 June 14, 2021\""
+#define SOFTWARE_VERSION "\"3.02.0 June 22, 2021\""
 #define REV_100    100
 #define REV_210    210
 #define REV_220    220

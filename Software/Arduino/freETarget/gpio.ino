@@ -102,14 +102,8 @@ void init_gpio(void)
  * Special case of the witness paper
  */
   pinMode(PAPER, OUTPUT);
-  if ( revision() < REV_300 )
-  { 
-    digitalWrite(PAPER, PAPER_OFF);
-  }
-  else 
-  {
-    digitalWrite(PAPER, PAPER_OFF_300);
-  }
+  paper_on_off(false);        // Turn it off
+  multifunction_init();       // Program the multifunction switch
   
 /*
  * All done, return
@@ -512,6 +506,24 @@ void read_timers(void)
   return;
  }
 
+/*-----------------------------------------------------
+ * 
+ * function: paper_on_off
+ * 
+ * brief:    Turn the withness paper motor on or off
+ * 
+ * return:  None
+ * 
+ *-----------------------------------------------------
+ *
+ * The witness paper motor changed polarity between 2.2
+ * and Version 3.0.
+ * 
+ * This function reads the board revision and controls 
+ * the FET accordingly
+ * 
+ *-----------------------------------------------------*/
+ 
 static void paper_on_off                        // Function to turn the motor on and off
   (
   bool on                                       // on == true, turn on motor drive
@@ -604,4 +616,86 @@ void blink_fault
   * Finished
   */
   return;
+}
+
+/*-----------------------------------------------------
+ * 
+ * function: multifunction_init
+ * 
+ * brief:    Initialize the direction of the MFS on SPARE_1
+ * 
+ * return:   None
+ * 
+ *-----------------------------------------------------
+ *
+ * SPARE_1 is an unassigned GPIO that will change
+ * function based on the software configuration.
+ * 
+ * This function uses a switch statement to determine
+ * the settings of the GPIO
+ * 
+ *-----------------------------------------------------*/
+ void multifunction_init(void)
+ {
+  switch (json_multifunction)
+  {
+    case PAPER_FEED:
+      pinMode(SPARE_1,INPUT_PULLUP);
+      break;
+
+  }
+
+/*
+ * The GPIO has been programmed per the multifunction mode
+ */
+ return;
+ }
+
+ 
+/*-----------------------------------------------------
+ * 
+ * function: multifunction_switch
+ * 
+ * brief:    Carry out the functions of the multifunction switch
+ * 
+ * return:   Switch state
+ * 
+ *-----------------------------------------------------
+ *
+ * The actions of SPARE_1 will change depending on the 
+ * mode that is programmed into it.
+ * 
+ *-----------------------------------------------------*/
+unsigned int multifunction_switch
+  (
+    unsigned int new_state               // Drive to a new state
+  )
+ {
+    unsigned int return_value;          // Value returned to caller
+
+/*
+ * Manage the GPIO based on the configuration
+ */
+ 
+  switch (json_multifunction)
+  {
+    case PAPER_FEED:                      // The switch acts as paper feed control
+      drive_paper();
+      break;
+
+    case GPIO_IN:                         // The switch is a general purpose input
+      return_value = digitalRead(SPARE_1);
+      break;
+
+    case GPIO_OUT:                        // The switch is a general purpose outptu 
+      return_value = new_state;
+      digitalWrite(SPARE_1, new_state);
+      break;
+
+  }
+
+/*
+ * All done, return the GPIO state
+ */
+  return return_value;
 }

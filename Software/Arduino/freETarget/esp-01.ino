@@ -18,7 +18,7 @@
  * to the name of the target, ex FET-WODEN.  This helps to link up 
  * the WiFI to the target.
  * 
- * Each ESP01 is a server so that the PC connects to it over 
+ * Each ESP-01 is a server so that the PC connects to it over 
  * IP address 192.168.10.9:1090
  * 
  * Unfortunatly as a server, each ESP expects to see more than one
@@ -30,7 +30,7 @@
  * port, parses the input and saves only the message to a 
  * circular buffer that is used later on by the application.
  * 
- * On output, the function esp01_send tells the esp01 to expect a 
+ * On output, the function esp01_send tells the ESP-01 to expect a 
  * very long null-terminated message.  The regular Serial.send()
  * messages are then used to send the body of the message and at 
  * the end esp01_send() inserts the null and kicks off the 
@@ -40,9 +40,6 @@
 
 #include "freETarget.h"
 #include "esp-01.h"
-
-#undef AUX_SERIAL
-#define AUX_SERIAL Serial
 
 /*
  * Function Prototypes
@@ -90,50 +87,102 @@ static int  esp01_channel = 0xFFFF;     // Possible channel number
  *--------------------------------------------------------------*/
 void esp01_init(void)
 {
+  if ( is_trace )
+  {
+    Serial.print("\r\nInitializing ESP-01");
+  }
+  
 /*
  * Determine if the ESP-01 is attached to the Accessory Connector
  */
   if (esp01_is_present() == false )
   {
+    if ( is_trace ) 
+    {
+      Serial.print("\n\rESP-01 Not Found");
+    }
     return;                                     // No hardware installed, nothing to do
   }
+  if ( is_trace )
+  {
+    Serial.print("\r\nESP-01 Present");
+  }
+
+  esp01_restart();
+  delay(ONE_SECOND);
+  esp01_flush();
   
 /*
  * There is an ESP-01 on the freETarget.  We need to program it
  */
   AUX_SERIAL.print("ATE0\r\n");                   // Turn off echo (don't use it)
-  esp01_waitOK();
-
+  if ( (esp01_waitOK() == false) && is_trace )
+  {
+    Serial.print("\r\nESP-01: Failed ATE0");
+  }
+  
   AUX_SERIAL.print("AT+RFPOWER=80\r\n");          // Set almost max power
-  esp01_waitOK();
- 
+  if ( (esp01_waitOK() == false) && ( is_trace ) )
+  {
+    Serial.print("\r\nESP-01: Failed AT+RFPOWER=80");  
+  } 
+
+  
   AUX_SERIAL.print("AT+CWMODE_DEF=2\r\n");        // We want to be an access point
-  esp01_waitOK();
+  if ( (esp01_waitOK() == false) && (is_trace) )
+  {
+    Serial.print("\n\rESP-01: Failed AT+CWMODE_DEF=2");
+  }
  
   AUX_SERIAL.print("AT+CWSAP_DEF="); AUX_SERIAL.print("\"FET-"); AUX_SERIAL.print(names[json_name_id]); AUX_SERIAL.print("\",\"NA\",5,0\r\n");
-  esp01_waitOK();                              // SSID = FET-<name>, no encryption, channel 2, 1 connecion, open SSID
+  if ( (esp01_waitOK() == false) && (is_trace) )
+  {
+    Serial.print("\n\rESP-01: AT+CWSAP_DEF=FET-"); Serial.print(names[json_name_id]);
+  }  
  
   AUX_SERIAL.print("AT+CWDHCP_DEF=0,1\r\n");      // DHCP turned on
-  esp01_waitOK();
-
+  if ( (esp01_waitOK() == false) && (is_trace) )
+  {
+    Serial.print("\n\rESP-01: Failed AT+CWDHCP_DEF=0,1");
+  }
+  
   AUX_SERIAL.print("AT+CIPAP_DEF=\"192.168.10.9\",\"192.168.10.9\"\r\n"); // Set the freETarget IP to 192.168.10.9
-  esp01_waitOK();
+  if ( (esp01_waitOK() == false) && (is_trace) )
+  {
+    Serial.print("\n\rESP-01: Failed AT+CIPAP_DEF=\"192.168.10.9\",\"192.168.10.9\"");
+  }
 
   AUX_SERIAL.print("AT+CWDHCPS_DEF=1,2800,\"192.168.10.0\",\"192.168.10.8\"\r\n");          // Set the PC IP to 192.168.10.0.  Lease Time 2800 minutes
-  esp01_waitOK();
+  if ( (esp01_waitOK() == false) && (is_trace) )
+  {
+    Serial.print("\n\rESP-01: Failed AT+CWDHCPS_DEF=1,2800,\"192.168.10.0\",\"192.168.10.8\"");
+  }
     
-  AUX_SERIAL.print("AT+CIPMUX=1\n");            // Allow a single connection
-  esp01_waitOK();
+  AUX_SERIAL.print("AT+CIPMUX=1\r\n");           // Allow a single connection
+  if ( (esp01_waitOK() == false) && (is_trace) )
+  {
+    Serial.print("\n\rESP-01: Failed AT+CIPMUX=1");
+  }
   
-  AUX_SERIAL.print("AT+CIPSTO=7000\n");         // Set the server time out (AMB to check)
-  esp01_waitOK();
+  AUX_SERIAL.print("AT+CIPSTO=7000\r\n");        // Set the server time out
+  if ( (esp01_waitOK() == false) && (is_trace) )
+  {
+    Serial.print("\n\rESP-01: Failed AT+CIPSTO=7000");
+  }
 
-  AUX_SERIAL.print("AT+CIPSERVER=1,1090\n");    // Turn on the server and listen on port 1090
-  esp01_waitOK();
+  AUX_SERIAL.print("AT+CIPSERVER=1,1090\r\n");   // Turn on the server and listen on port 1090
+  if ( (esp01_waitOK() == false) && (is_trace) )
+  {
+    Serial.print("\n\rESP-01: Failed AT+CIPSERVER=1,1090");
+  }
 
 /*
  * All done, return
  */
+  if ( is_trace )
+  {
+    Serial.print("\r\nESP-01 Initialization complete");
+  }
   return;
 }
 
@@ -176,9 +225,9 @@ bool esp01_restart(void)
   AUX_SERIAL.print("AT+RST\n");
 
 /*
- * All done, return the esp01 state
+ * All done, 
  */
-  return esp01_waitOK();
+  return true;
 }
 
 
@@ -219,7 +268,7 @@ bool esp01_is_present(void)
   
   esp01_flush();                          // Eat any garbage that might be on the port
 
-  AUX_SERIAL.print("AT\n");               // Send out an AT command to the port
+  AUX_SERIAL.print("AT\r\n");             // Send out an AT command to the port
   esp01_present = esp01_waitOK();         // and wait for the OK to come back
 
 /*
@@ -358,7 +407,7 @@ char esp01_read(void)
   }
 
 /*  
- *   We have an ESP01 attached,  Get the character from the queue
+ *   We have an ESP-01 attached,  Get the character from the queue
  */
   if ( esp01_in_ptr == esp01_out_ptr )  // Is the queueu empty?
   {
@@ -408,7 +457,7 @@ unsigned int esp01_available(void)
   }
 
 /*  
- *   We have an ESP01 attached,  Figure out the bytes in the queueu
+ *   We have an ESP-01 attached,  Figure out the bytes in the queueu
  */
   if ( esp01_in_ptr < esp01_out_ptr )   // Have we wrapped around?
   {
@@ -445,9 +494,9 @@ unsigned int esp01_available(void)
  *   Not attached - Do nothing
  *   Attached     - Output the control bytes to begin IP transmission
  *   
- *   The function operates on a bit of a kluge.  The ESP01 has a 
+ *   The function operates on a bit of a kluge.  The ESP-01 has a 
  *   command AT+CIPSENDEX which will transmit the next N bytes 
- *   over the IP channel. The ESP01 will also stop collecting 
+ *   over the IP channel. The ESP-01 will also stop collecting 
  *   bytes and send the data if a NULL is received.
  *   
  *   So the freETarget implements the send function by triggering
@@ -455,6 +504,12 @@ unsigned int esp01_available(void)
  *   the application send out bytes over the AUX port as usual 
  *   then the application sends out a NULL to kick off the 
  *   sending process.
+ *   
+ *   It is possible for the ESP-01 to be attached, but nothing 
+ *   connected via the server.  This function will not get the >
+ *   prompt and hang indefinitly.  For this reason the waiting
+ *   loop will us a timer to exit if nothing comes back
+ *   
  *--------------------------------------------------------------*/
 
 void esp01_send
@@ -463,6 +518,7 @@ void esp01_send
   )
 {
   unsigned int x;                       // Working character
+  long         timer;                   // Timer start
   
 /*
  * Determine if we actually have to do anything
@@ -473,13 +529,14 @@ void esp01_send
   }
 
 /*  
- *   We have an ESP01 attached,  Figure out the bytes in the queueu
+ *   We have an ESP-01 attached,  Figure out the bytes in the queueu
  */
   if ( start )
   {
     AUX_SERIAL.print("AT+CIPSENDEX="); AUX_SERIAL.print(esp01_channel); AUX_SERIAL.print(",2047\r\n");   // Start and lie that we will send 2K of data
-    
-    while (1)                                       // Wait until the > prompt comes back
+
+    timer = micros();                               // Remember the starting time
+    while ( (micros() - timer) < MAX_esp01_waitOK ) // Wait for the > to come back within a second
     {
       if ( AUX_SERIAL.available() != 0 )            // Something available
       {
@@ -511,7 +568,7 @@ void esp01_send
  *
  *----------------------------------------------------------------
  *   
- *   The ESP01 receives incoming characters on the IP channel, 
+ *   The ESP-01 receives incoming characters on the IP channel, 
  *   parses the frame, and informs the application of what 
  *   channel received data, the length, and the contents
  *   
@@ -537,9 +594,14 @@ void esp01_send
 #define WAIT_SIZE    4          // Pull in the size buffer
 #define WAIT_DATA    5          // Pull in the rest of the buffer
 
+#define IS_UNKNOWN   0          // As yet the message is unknown
+#define IS_CONNECT   1          // Message appears to be CONNECT
+#define IS_CLOSED    2          // The message appears to be CLOSED
+#define IS_IPD       4          // The message appears to be IPD
+
 static char s_ipd[]     = "IPD,";       // IPC message
-static char s_connect[] = "CONNECT";    // Connect message
-static char s_closed[]  = "CLOSED";     // Disconnect message
+static char s_connect[] = "CONNECT\r\n";    // Connect message
+static char s_closed[]  = "CLOSED\r\n";     // Disconnect message
 
 void esp01_receive(void)
 {
@@ -548,6 +610,8 @@ void esp01_receive(void)
   static unsigned int count;            // Expected number of characters
   static unsigned int i;                // Itration counter
   static unsigned int q_channel;        // Channel - Question?
+  static unsigned int message_type;     // Mesages is one of CONNECT, CLOSED, or IPD
+  
 /*
  * Determine if we actually have to do anything
  */
@@ -562,13 +626,15 @@ void esp01_receive(void)
   while ( AUX_SERIAL.available() != 0 ) // Nothing is waiting for us
   {
     ch = AUX_SERIAL.read();             // Pull in the next byte
+Serial.print(" ["); Serial.print(ch); Serial.print(" 0x"); Serial.print(ch, HEX); Serial.print("]");
 
     switch (state)                      // What do we do with it?
     {
       case WAIT_IDLE:                   // Stay here until we see a + or ,
-        i = 0;
         if ( (ch == '+') || (ch == ',' ) )// Synchronized and ready for the next state
         {
+          i = 0;
+          message_type = IS_CONNECT + IS_CLOSED + IS_IPD;  // Message could be anything
           state = WAIT_CONNECT;
         }
         else
@@ -577,26 +643,38 @@ void esp01_receive(void)
         }
         break;
 
-      case WAIT_CONNECT:                // If the next character is 
-        if ( (ch != s_connect[i])       // not from CONNECT
-           && (ch != s_closed[i])       // not from CLOSED
-           && (ch != s_ipd[i]) )        // not from IPD
+      case WAIT_CONNECT:                // If the next character is NOT
+        if ( ch != s_connect[i] )       // from CONNECT
+        {
+          message_type &= ~IS_CONNECT;
+        }
+        if ( ch != s_closed[i] )        // from CLOSED
+        {
+          message_type &= ~IS_CLOSED;
+        }
+        if ( ch != s_ipd[i] )           // from IPD
+        {
+          message_type &= ~IS_IPD;
+        }
+          
+        if ( message_type == IS_UNKNOWN ) // not from IPD
         {
           state = WAIT_IDLE;            // then, go back to the idle state
         }
+        
         i++;                            // Yes, wait for the next character
-        if ( s_connect[i] == 0 )        // Reached the end of CONNECT?
-        {                 
+        if ( (message_type & IS_CONNECT) && (s_connect[i] == 0) )        // Reached the end of CONNECT?
+        { 
+          esp01_channel = q_channel;    // Record the channel                
           POST_version(PORT_AUX);       // Send out the software version to keep the PC happy
-          esp01_channel = q_channel;    // Record the channel
           state = WAIT_IDLE;            // and go back to waiting
         }
-        if ( s_closed[i] == 0 )         // Reached the end of CLOSED?
+        if ( (message_type & IS_CLOSED) && (s_closed[i] == 0) )         // Reached the end of CLOSED?
         {                 
           esp01_channel = 0xffff;       // No longer a valid channel
           state = WAIT_IDLE;            // Go back to waiting
         }
-        if ( s_ipd[i] == 0 )            // Reached the end of IPD?
+        if ( (message_type & IS_IPD) && (s_ipd[i] == 0) )            // Reached the end of IPD?
         {
           state = WAIT_CHANNEL;         // Go and pick up the channel number
         }

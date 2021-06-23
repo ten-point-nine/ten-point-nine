@@ -23,10 +23,11 @@ unsigned int shot = 0;                  // Shot counter
 bool         face_strike = 0;           // Miss indicator
 bool         is_trace = false;          // TRUE if trace is enabled
 
-const char* names[] = { "TARGET", "1",      "2",        "3",     "4",        "5",      "6",     "7",     "8",     "9",      "10",
-                        "DOC",    "DOPEY",  "HAPPY",   "GRUMPY", "BASHFUL", "SNEEZEY", "SLEEPY",
-                        "RUDOLF", "DONNER", "BLITXEM", "DASHER", "PRANCER", "VIXEN",   "COMET", "CUPID", "DUNDER",
-                        "ODIN",   "WODEN",   "THOR",   "BALDAR",
+const char* names[] = { "TARGET",                                                                                           //  0
+                        "1",      "2",        "3",     "4",      "5",       "6",       "7",     "8",     "9",      "10",    //  1
+                        "DOC",    "DOPEY",  "HAPPY",   "GRUMPY", "BASHFUL", "SNEEZEY", "SLEEPY",                            // 11
+                        "RUDOLF", "DONNER", "BLITXEM", "DASHER", "PRANCER", "VIXEN",   "COMET", "CUPID", "DUNDER",          // 18  
+                        "ODIN",   "WODEN",   "THOR",   "BALDAR",                                                            // 26
                         0};
                   
 char* nesw = "NESW";                    // Cardinal Points
@@ -142,10 +143,10 @@ void loop()
 {
 
 /*
- * First thing, handle input from the IP channel
+ * First thing, handle polled devices
  */
   esp01_receive();                // Accumulate input from the IP port.
-  
+  multifunction_switch(0);        // Handle the SPARE_1 input
 /*
  * Take care of any commands coming through
  */
@@ -154,7 +155,7 @@ void loop()
     now = micros();               // Reset the power down timer if something comes in
     set_LED_PWM(json_LED_PWM);    // Put the LED back on if it was off
   }
-
+return;
 /*
  * Cycle through the state machine
  */
