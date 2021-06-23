@@ -12,7 +12,7 @@
 #define _FREETARGET_H
 #include "esp-01.h"
 
-#define SOFTWARE_VERSION "\"3.02.0 June 22, 2021\""
+#define SOFTWARE_VERSION "\"3.02.0 June 23, 2021\""
 #define REV_100    100
 #define REV_210    210
 #define REV_220    220
@@ -22,7 +22,7 @@
 #define INIT_DONE       0xabcd        // Initialization complete signature
 
 /*
- * Compilation Flags
+ * Three way Serial Port
  */
 #define SAMPLE_CALCULATIONS false     // Trace the COUNTER values
 #define AUX_SERIAL         Serial3    // Auxilary Connector
@@ -88,7 +88,7 @@ struct history
 
 typedef struct history history_t;
 
-extern double     s_of_sound;
+extern double  s_of_sound;
 
 extern const char* names[];
 extern bool  face_strike;
