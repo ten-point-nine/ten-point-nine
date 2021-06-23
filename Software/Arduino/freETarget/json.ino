@@ -129,8 +129,9 @@ bool    return_value;
   {
     return_value = true;
     
-    GET(ch);
+    ch = GET();
     Serial.print(ch);
+
 #if ( JSON_DEBUG == true )
     PRINT(ch);
 #endif

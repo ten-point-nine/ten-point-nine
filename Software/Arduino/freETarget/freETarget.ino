@@ -147,6 +147,7 @@ void loop()
  */
   esp01_receive();                // Accumulate input from the IP port.
   multifunction_switch(0);        // Handle the SPARE_1 input
+  
 /*
  * Take care of any commands coming through
  */
@@ -155,7 +156,7 @@ void loop()
     now = micros();               // Reset the power down timer if something comes in
     set_LED_PWM(json_LED_PWM);    // Put the LED back on if it was off
   }
-return;
+
 /*
  * Cycle through the state machine
  */

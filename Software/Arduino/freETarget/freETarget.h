@@ -10,6 +10,7 @@
  */
 #ifndef _FREETARGET_H
 #define _FREETARGET_H
+#include "esp-01.h"
 
 #define SOFTWARE_VERSION "\"3.02.0 June 22, 2021\""
 #define REV_100    100
@@ -28,12 +29,25 @@
 #define DISPLAY_SERIAL     Serial2    // Serial port for slave display
 
 #define PRINT(x)  {Serial.print(x); AUX_SERIAL.print(x); DISPLAY_SERIAL.print(x);}
-#define GET(ch)   {if ( Serial.available() )              ch = Serial.read();         \
-                   else if ( esp01_available() )          ch = esp01_read();          \
-                   else if ( DISPLAY_SERIAL.available() ) ch = DISPLAY_SERIAL.read(); \
-                   else                                   ch = 0;}
+
+char GET (void) 
+{
+  if ( Serial.available() )
+  {
+    return Serial.read(); 
+  }
+  if ( esp01_available() )
+  {
+    return esp01_read();
+  }
+  if ( DISPLAY_SERIAL.available() )
+  {
+    return DISPLAY_SERIAL.read();
+  }
+  return 0;
+}
                    
-#define AVAILABLE ( Serial.available() + AUX_SERIAL.available() + DISPLAY_SERIAL.available() )
+#define AVAILABLE ( Serial.available() | esp01_available() | DISPLAY_SERIAL.available() )
 
 #define PORT_SERIAL   1
 #define PORT_AUX      2
