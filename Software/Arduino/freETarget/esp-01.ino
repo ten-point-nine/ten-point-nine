@@ -39,7 +39,6 @@
  *---------------------------------------------------------------*/
 
 #include "freETarget.h"
-#include "esp-01.h"
 
 /*
  * Function Prototypes
@@ -57,7 +56,7 @@ static char esp01_in_queue[32];         // Place to store incoming characters
 static int  esp01_in_ptr;               // Queue in pointer
 static int  esp01_out_ptr;              // Queue out pointer
 
-static int  esp01_channel = 0xFFFF;     // Possible channel number
+static bool esp01_connect[3] = {false, false, false}; // Set to true when a channel (0-2) connects
 
 /*----------------------------------------------------------------
  *
@@ -127,7 +126,6 @@ void esp01_init(void)
     Serial.print("\r\nESP-01: Failed AT+RFPOWER=80");  
   } 
 
-  
   AUX_SERIAL.print("AT+CWMODE_DEF=2\r\n");        // We want to be an access point
   if ( (esp01_waitOK() == false) && (is_trace) )
   {
@@ -227,6 +225,10 @@ bool esp01_restart(void)
 /*
  * All done, 
  */
+  esp01_connect[0] = false;
+  esp01_connect[1] = false;
+  esp01_connect[2] = false;
+  
   return true;
 }
 
@@ -533,7 +535,7 @@ void esp01_send
  */
   if ( start )
   {
-    AUX_SERIAL.print("AT+CIPSENDEX="); AUX_SERIAL.print(esp01_channel); AUX_SERIAL.print(",2047\r\n");   // Start and lie that we will send 2K of data
+    AUX_SERIAL.print("AT+CIPSENDEX="); AUX_SERIAL.print(channel); AUX_SERIAL.print(",2047\r\n");   // Start and lie that we will send 2K of data
 
     timer = micros();                               // Remember the starting time
     while ( (micros() - timer) < MAX_esp01_waitOK ) // Wait for the > to come back within a second
@@ -609,7 +611,7 @@ void esp01_receive(void)
   static unsigned int state = WAIT_IDLE;// Receiver State
   static unsigned int count;            // Expected number of characters
   static unsigned int i;                // Itration counter
-  static unsigned int q_channel;        // Channel - Question?
+  static unsigned int channel;          // Channel contained in CONNECT or CLOSED message
   static unsigned int message_type;     // Mesages is one of CONNECT, CLOSED, or IPD
   
 /*
@@ -639,7 +641,7 @@ Serial.print(" ["); Serial.print(ch); Serial.print(" 0x"); Serial.print(ch, HEX)
         }
         else
         {
-          q_channel = ch - '0';        // Nothing, pretend it is a CONNECT channel identifier (ex 0,CONNECT)  
+          channel = ch - '0';            // Nothing, pretend it is a CONNECT channel identifier (ex 0,CONNECT)  
         }
         break;
 
@@ -665,13 +667,13 @@ Serial.print(" ["); Serial.print(ch); Serial.print(" 0x"); Serial.print(ch, HEX)
         i++;                            // Yes, wait for the next character
         if ( (message_type & IS_CONNECT) && (s_connect[i] == 0) )        // Reached the end of CONNECT?
         { 
-          esp01_channel = q_channel;    // Record the channel                
+          esp01_connect[channel] = true;    // Record the channel                
           POST_version(PORT_AUX);       // Send out the software version to keep the PC happy
           state = WAIT_IDLE;            // and go back to waiting
         }
         if ( (message_type & IS_CLOSED) && (s_closed[i] == 0) )         // Reached the end of CLOSED?
         {                 
-          esp01_channel = 0xffff;       // No longer a valid channel
+          esp01_connect[channel] = false;// No longer a valid channel
           state = WAIT_IDLE;            // Go back to waiting
         }
         if ( (message_type & IS_IPD) && (s_ipd[i] == 0) )            // Reached the end of IPD?

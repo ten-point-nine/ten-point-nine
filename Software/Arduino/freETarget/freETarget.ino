@@ -291,7 +291,6 @@ void loop()
     if ( (timer_value[N] == 0) || (timer_value[E] == 0) || (timer_value[S] == 0) || (timer_value[W] == 0) ) // If any one of the timers is 0, that's a miss
     {
       state = SEND_MISS;
-      delay(ONE_SECOND);
       break;
     }
     send_score(&history, shot_number, sensor_status);

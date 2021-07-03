@@ -332,7 +332,8 @@ void self_test(uint16_t test)
     int port        // Port to display output on
     )
 {
-
+  int i;
+  
 /*
  * Display the version on the selected port
  */

@@ -5,15 +5,12 @@
  * Determine the score
  *
  *---------------------------------------------------------------*/
-
-#include "mechanical.h"
-#include "compute_hit.h"
 #include "freETarget.h"
+#include "mechanical.h"
 #include "compute_hit.h"
 #include "analog_io.h"
 #include "json.h"
 #include "arduino.h"
-#include "esp-01.h"
 
 #define THRESHOLD (0.001)
 
