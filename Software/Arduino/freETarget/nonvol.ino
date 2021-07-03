@@ -41,7 +41,7 @@ void init_nonvol(int v)
  i=0;
  while ( JSON[i].token != 0 )
  {
-   if ( JSON[i].non_vol != 0 )                          // There is a value stored in memory
+   if ( (JSON[i].value != 0) || (JSON[i].d_value != 0)  )    // There is a value stored in memory
    {
      switch ( JSON[i].convert )
      {
@@ -74,35 +74,37 @@ void init_nonvol(int v)
     Serial.read();
   }
   
-  Serial.print("\r\nSerial Number? (number! or x)");
+  Serial.print("\r\nSerial Number? (ex 223! or x))");
   while (i)
   {
     if ( Serial.available() != 0 )
     {
       ch = Serial.read();
       if ( ch == '!' )
-      {
-        Serial.print(" Confirm: "); Serial.print(serial_number);
+      {  
+        EEPROM.put(NONVOL_SERIAL_NO, serial_number);
+        Serial.print(" Setting Serial Number to: "); Serial.print(serial_number);
         break;
       }
       if ( ch == 'x' )
       {
-        return;
+        break;
       }
-      Serial.print(serial_number);
       serial_number *= 10;
       serial_number += ch - '0';
-      Serial.print(serial_number);
     }
   }
-  EEPROM.put(NONVOL_SERIAL_NO, serial_number);
-  
+
+/*
+ * Initialization complete.  Mark the init done
+ */
   nonvol_init = INIT_DONE;
-  EEPROM.put(NONVOL_INIT, INIT_DONE);
+  EEPROM.put(NONVOL_INIT, nonvol_init);
+  
 /*
  * Read the NONVOL and print the results
  */
-  read_nonvol();                          // Force in new values
+  read_nonvol();                          // Read back the new values
   show_echo(0);                           // Display these settings
   set_trip_point(0);                      // And stay forever in the trip mode
   
@@ -157,7 +159,7 @@ void read_nonvol(void)
  i=0;
  while ( JSON[i].token != 0 )
  {
-   if ( JSON[i].non_vol != 0 )                          // There is a value stored in memory
+   if ( (JSON[i].value != 0) || (JSON[i].d_value != 0)  )    // There is a value stored in memory
    {
      switch ( JSON[i].convert )
      {
