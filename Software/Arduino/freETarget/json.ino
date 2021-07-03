@@ -429,7 +429,7 @@ static void show_test(int test_number)
    int trace                // Trace on or off
    )
  {
-   Serial.print("\n\rTrace: ");
+   Serial.print("\r\nTrace: ");
    
    if ( trace == 0 )
    {
@@ -442,7 +442,7 @@ static void show_test(int test_number)
       Serial.print("ON");
    }
 
-   Serial.print("\n\r");
+   Serial.print("\r\n");
    
   /*
    * The DIP switch has been remotely set

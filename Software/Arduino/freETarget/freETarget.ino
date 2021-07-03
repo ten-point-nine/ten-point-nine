@@ -81,7 +81,7 @@ void setup(void)
   while ( (POST_counters() == false)  // If the timers fail
               && !is_trace)           // and not in trace mode (DIAG jumper installed)
   {
-    Serial.print("\n\rPOST_2 Failed\n\r");  // Blink the LEDs
+    Serial.print("\r\nPOST_2 Failed\r\n");  // Blink the LEDs
     blink_fault(POST_COUNT_FAILED);         // and try again
   }
   POST_trip_point();                  // Show the trip point

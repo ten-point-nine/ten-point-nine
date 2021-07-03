@@ -44,7 +44,6 @@
  * Function Prototypes
  */
 static bool esp01_esp01_waitOK(void);   // Wait for an OK to come back
-static bool esp01_is_present(void);     // TRUE if an ESP-01 was found
 static void esp01_flush(void);          // Flush any pending messages
 
 /*
@@ -56,7 +55,7 @@ static char esp01_in_queue[32];         // Place to store incoming characters
 static int  esp01_in_ptr;               // Queue in pointer
 static int  esp01_out_ptr;              // Queue out pointer
 
-static bool esp01_connect[3] = {false, false, false}; // Set to true when a channel (0-2) connects
+static bool esp01_connect[] = {false, false, false}; // Set to true when a channel (0-2) connects
 
 /*----------------------------------------------------------------
  *
@@ -98,7 +97,7 @@ void esp01_init(void)
   {
     if ( is_trace ) 
     {
-      Serial.print("\n\rESP-01 Not Found");
+      Serial.print("\r\nESP-01 Not Found");
     }
     return;                                     // No hardware installed, nothing to do
   }
@@ -129,51 +128,51 @@ void esp01_init(void)
   AUX_SERIAL.print("AT+CWMODE_DEF=2\r\n");        // We want to be an access point
   if ( (esp01_waitOK() == false) && (is_trace) )
   {
-    Serial.print("\n\rESP-01: Failed AT+CWMODE_DEF=2");
+    Serial.print("\r\nESP-01: Failed AT+CWMODE_DEF=2");
   }
  
   AUX_SERIAL.print("AT+CWSAP_DEF="); AUX_SERIAL.print("\"FET-"); AUX_SERIAL.print(names[json_name_id]); AUX_SERIAL.print("\",\"NA\",5,0\r\n");
   if ( (esp01_waitOK() == false) && (is_trace) )
   {
-    Serial.print("\n\rESP-01: AT+CWSAP_DEF=FET-"); Serial.print(names[json_name_id]);
+    Serial.print("\r\nESP-01: AT+CWSAP_DEF=FET-"); Serial.print(names[json_name_id]);
   }  
  
   AUX_SERIAL.print("AT+CWDHCP_DEF=0,1\r\n");      // DHCP turned on
   if ( (esp01_waitOK() == false) && (is_trace) )
   {
-    Serial.print("\n\rESP-01: Failed AT+CWDHCP_DEF=0,1");
+    Serial.print("\r\nESP-01: Failed AT+CWDHCP_DEF=0,1");
   }
   
   AUX_SERIAL.print("AT+CIPAP_DEF=\"192.168.10.9\",\"192.168.10.9\"\r\n"); // Set the freETarget IP to 192.168.10.9
   if ( (esp01_waitOK() == false) && (is_trace) )
   {
-    Serial.print("\n\rESP-01: Failed AT+CIPAP_DEF=\"192.168.10.9\",\"192.168.10.9\"");
+    Serial.print("\r\nESP-01: Failed AT+CIPAP_DEF=\"192.168.10.9\",\"192.168.10.9\"");
   }
 
   AUX_SERIAL.print("AT+CWDHCPS_DEF=1,2800,\"192.168.10.0\",\"192.168.10.8\"\r\n");          // Set the PC IP to 192.168.10.0.  Lease Time 2800 minutes
   if ( (esp01_waitOK() == false) && (is_trace) )
   {
-    Serial.print("\n\rESP-01: Failed AT+CWDHCPS_DEF=1,2800,\"192.168.10.0\",\"192.168.10.8\"");
+    Serial.print("\r\nESP-01: Failed AT+CWDHCPS_DEF=1,2800,\"192.168.10.0\",\"192.168.10.8\"");
   }
     
   AUX_SERIAL.print("AT+CIPMUX=1\r\n");           // Allow a single connection
   if ( (esp01_waitOK() == false) && (is_trace) )
   {
-    Serial.print("\n\rESP-01: Failed AT+CIPMUX=1");
+    Serial.print("\r\nESP-01: Failed AT+CIPMUX=1");
+  }
+  
+  AUX_SERIAL.print("AT+CIPSERVER=1,1090\r\n");   // Turn on the server and listen on port 1090
+  if ( (esp01_waitOK() == false) && (is_trace) )
+  {
+    Serial.print("\r\nESP-01: Failed AT+CIPSERVER=1,1090");
   }
   
   AUX_SERIAL.print("AT+CIPSTO=7000\r\n");        // Set the server time out
   if ( (esp01_waitOK() == false) && (is_trace) )
   {
-    Serial.print("\n\rESP-01: Failed AT+CIPSTO=7000");
+    Serial.print("\r\nESP-01: Failed AT+CIPSTO=7000");
   }
-
-  AUX_SERIAL.print("AT+CIPSERVER=1,1090\r\n");   // Turn on the server and listen on port 1090
-  if ( (esp01_waitOK() == false) && (is_trace) )
-  {
-    Serial.print("\n\rESP-01: Failed AT+CIPSERVER=1,1090");
-  }
-
+  
 /*
  * All done, return
  */
@@ -202,6 +201,7 @@ void esp01_init(void)
  *--------------------------------------------------------------*/
 bool esp01_restart(void)
 {
+  char ch;
   
 /*
  * Determine if the ESP-01 is attached to the Accessory Connector
@@ -212,15 +212,11 @@ bool esp01_restart(void)
   }
   
 /*
- * Send out the break
+ * Send out the break then restart the module
  */
   AUX_SERIAL.print("+++");
   delay(ONE_SECOND);
-
-/*
- * Restart the module
- */
-  AUX_SERIAL.print("AT+RST\n");
+  AUX_SERIAL.print("AT+RST\r\n");
 
 /*
  * All done, 
@@ -411,7 +407,7 @@ char esp01_read(void)
 /*  
  *   We have an ESP-01 attached,  Get the character from the queue
  */
-  if ( esp01_in_ptr == esp01_out_ptr )  // Is the queueu empty?
+  if ( esp01_in_ptr == esp01_out_ptr )  // Is the queue empty?
   {
     ch = -1;                            // Return an error
   }
@@ -516,7 +512,8 @@ unsigned int esp01_available(void)
 
 void esp01_send
   (
-    bool start                          // TRUE if starting a transmission
+    bool start,                         // TRUE if starting a transmission
+    int  index                          // Which index (connection) to send on
   )
 {
   unsigned int x;                       // Working character
@@ -535,7 +532,7 @@ void esp01_send
  */
   if ( start )
   {
-    AUX_SERIAL.print("AT+CIPSENDEX="); AUX_SERIAL.print(esp01_connect[0]); AUX_SERIAL.print(",2047\r\n");   // Start and lie that we will send 2K of data
+    AUX_SERIAL.print("AT+CIPSENDEX="); AUX_SERIAL.print(index); AUX_SERIAL.print(",2047\r\n");   // Start and lie that we will send 2K of data
 
     timer = micros();                               // Remember the starting time
     while ( (micros() - timer) < MAX_esp01_waitOK ) // Wait for the > to come back within a second
@@ -628,7 +625,6 @@ void esp01_receive(void)
   while ( AUX_SERIAL.available() != 0 ) // Nothing is waiting for us
   {
     ch = AUX_SERIAL.read();             // Pull in the next byte
-Serial.print(" ["); Serial.print(ch); Serial.print(" 0x"); Serial.print(ch, HEX); Serial.print("]");
 
     switch (state)                      // What do we do with it?
     {
@@ -667,16 +663,16 @@ Serial.print(" ["); Serial.print(ch); Serial.print(" 0x"); Serial.print(ch, HEX)
         i++;                            // Yes, wait for the next character
         if ( (message_type & IS_CONNECT) && (s_connect[i] == 0) )        // Reached the end of CONNECT?
         { 
-          esp01_connect[channel] = true;    // Record the channel                
+          esp01_connect[channel] = true;// Record the channel                
           POST_version(PORT_AUX);       // Send out the software version to keep the PC happy
           state = WAIT_IDLE;            // and go back to waiting
         }
         if ( (message_type & IS_CLOSED) && (s_closed[i] == 0) )         // Reached the end of CLOSED?
         {                 
           esp01_connect[channel] = false;// No longer a valid channel
-          state = WAIT_IDLE;            // Go back to waiting
+          state = WAIT_IDLE;            // Go back to waiting       
         }
-        if ( (message_type & IS_IPD) && (s_ipd[i] == 0) )            // Reached the end of IPD?
+        if ( (message_type & IS_IPD) && (s_ipd[i] == 0) )               // Reached the end of IPD?
         {
           state = WAIT_CHANNEL;         // Go and pick up the channel number
         }

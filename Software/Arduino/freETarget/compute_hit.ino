@@ -497,7 +497,7 @@ void send_score
 /* 
  *  Display the results
  */
-  esp01_send(true);       // Turn on the IP channel (if needed)
+  esp01_send(true, 0);       // Turn on the IP channel (if needed)
   PRINT("\r\n{");
   
 #if ( S_SHOT )
@@ -545,7 +545,7 @@ void send_score
 #endif
 
   PRINT("}\r\n");
-  esp01_send(false);
+  esp01_send(false, 0);
 
 /*
  * All done, return
@@ -576,7 +576,7 @@ void send_miss
 /* 
  *  Display the results
  */
-  esp01_send(true);              // Prime the IP channel if needed
+  esp01_send(true, 0);           // Prime the IP channel if needed
   PRINT("\r\n{");
   
 #if ( S_SHOT )
@@ -594,7 +594,7 @@ void send_miss
 #endif
 
   PRINT("}\r\n");
-  esp01_send(false);            // Flush the IP channel
+  esp01_send(false, 0);            // Flush the IP channel
 
 /*
  * All done, go home
