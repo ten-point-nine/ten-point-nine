@@ -130,7 +130,6 @@ bool    return_value;
     return_value = true;
     
     ch = GET();
-    Serial.print(ch);
 
 #if ( JSON_DEBUG == true )
     PRINT(ch);
@@ -145,9 +144,13 @@ bool    return_value;
         break;
 
       case '%':
-        self_test(T_XFR_LOOP);          // Transfer self test
+        self_test(T_XFR_LOOP);             // Transfer self test
         break;
         
+      case '^':
+        drive_paper();                     // Page Feed
+        break;
+
       case '{':
         in_JSON = 0;
         input_JSON[0] = 0;

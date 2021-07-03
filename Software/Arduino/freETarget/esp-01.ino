@@ -535,7 +535,7 @@ void esp01_send
  */
   if ( start )
   {
-    AUX_SERIAL.print("AT+CIPSENDEX="); AUX_SERIAL.print(channel); AUX_SERIAL.print(",2047\r\n");   // Start and lie that we will send 2K of data
+    AUX_SERIAL.print("AT+CIPSENDEX="); AUX_SERIAL.print(esp01_connect[0]); AUX_SERIAL.print(",2047\r\n");   // Start and lie that we will send 2K of data
 
     timer = micros();                               // Remember the starting time
     while ( (micros() - timer) < MAX_esp01_waitOK ) // Wait for the > to come back within a second

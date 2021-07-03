@@ -62,6 +62,8 @@ const GPIO init_table[] = {
   {SPARE_2,     INPUT_PULLUP, 0},
   
   {EOF, EOF, EOF} };
+  
+static   int last_MFS_state;              // Last state read from MFS
 
 void face_ISR(void);
 static void paper_on_off(bool on);        // Turn the motor on or off
@@ -461,7 +463,7 @@ void read_timers(void)
   
   if ( is_trace )
   {
-    Serial.print("\r\nAdvancing paper...");
+    Serial.print("\r\nAdvancing paper ");
   }
 
 /*
@@ -475,7 +477,7 @@ void read_timers(void)
    
    if ( is_trace )
    {
-     Serial.print("+");
+     Serial.print("On ");
    }
    
    for (j=0; j != json_paper_time; j++ )          // Delay in 10 ms increments
@@ -489,7 +491,7 @@ void read_timers(void)
    
    if ( is_trace )
    {
-     Serial.print("-");
+     Serial.print("Off ");
    }
 
    if ( json_paper_step == 1)                    // DC motors only have 
@@ -641,6 +643,7 @@ void blink_fault
   {
     case PAPER_FEED:
       pinMode(SPARE_1,INPUT_PULLUP);
+      last_MFS_state = digitalRead(SPARE_1);    // Remember the starting state
       break;
 
   }
@@ -668,7 +671,7 @@ void blink_fault
  *-----------------------------------------------------*/
 unsigned int multifunction_switch
   (
-    unsigned int new_state               // Drive to a new state
+    unsigned int new_state               // If output, drive to a new state
   )
  {
     unsigned int return_value;          // Value returned to caller
@@ -680,7 +683,14 @@ unsigned int multifunction_switch
   switch (json_multifunction)
   {
     case PAPER_FEED:                      // The switch acts as paper feed control
-      drive_paper();
+      return_value = digitalRead(SPARE_2);
+      Serial.print(return_value);
+      if ( (return_value ^ last_MFS_state)// Got a change?
+         & ( return_value == 0 ) )        // And its a contact to ground
+      {      
+        drive_paper();                    // Drive the paper once
+      }
+      last_MFS_state = return_value;      // and remember for next time
       break;
 
     case GPIO_IN:                         // The switch is a general purpose input
@@ -692,6 +702,8 @@ unsigned int multifunction_switch
       digitalWrite(SPARE_1, new_state);
       break;
 
+    default:
+      break;
   }
 
 /*

@@ -12,7 +12,7 @@
 #define _FREETARGET_H
 #include "esp-01.h"
 
-#define SOFTWARE_VERSION "\"3.02.0 June 23, 2021\""
+#define SOFTWARE_VERSION "\"3.02.0 July 3, 2021\""
 #define REV_100    100
 #define REV_210    210
 #define REV_220    220

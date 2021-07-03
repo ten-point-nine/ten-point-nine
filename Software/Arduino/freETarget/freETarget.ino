@@ -146,7 +146,6 @@ void loop()
  * First thing, handle polled devices
  */
   esp01_receive();                // Accumulate input from the IP port.
-  multifunction_switch(0);        // Handle the SPARE_1 input
   
 /*
  * Take care of any commands coming through
