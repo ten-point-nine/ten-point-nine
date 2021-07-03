@@ -27,51 +27,42 @@ void init_nonvol(int v)
   unsigned int nonvol_init;               // Initialization token
   unsigned int serial_number;             // Board serial number
   char ch;
-  
-  nonvol_init = 0;                        // Corrupt the init location
-  serial_number = 0;
-  EEPROM.put(NONVOL_INIT, nonvol_init);
+  unsigned int x;                         // Temporary Value
+  double       dx;                        // Temporarty Value
   
   Serial.print("\r\nReset to factory defaults\r\n");
-  
+  nonvol_init = 0;                        // Corrupt the init location
+  EEPROM.put(NONVOL_INIT, nonvol_init);
   gen_position(0); 
-  EEPROM.put(NONVOL_DIP_SWITCH,  0);   // No, set up the defaults
-  EEPROM.put(NONVOL_SENSOR_DIA,  230.0); 
-  EEPROM.put(NONVOL_PAPER_TIME,  0);    // Duration of paper pulse (LSB = 10ms)
-  EEPROM.put(NONVOL_PAPER_STEP,  1);    // Number of paper steps
-  EEPROM.put(NONVOL_TEST_MODE,   0);
-  EEPROM.put(NONVOL_CALIBRE_X10, 45);
-  EEPROM.put(NONVOL_LED_PWM,     50);
-  EEPROM.put(NONVOL_POWER_SAVE,  30);
-  EEPROM.put(NONVOL_NAME_ID,      1);
-  EEPROM.put(NONVOL_1_RINGx10, 1555);
-  EEPROM.put(NONVOL_SEND_MISS,    0);
-  EEPROM.put(NONVOL_SERIAL_NO,    0);
-  EEPROM.put(NONVOL_DIP_SWITCH,   0);     // Read the nonvol settings
-  EEPROM.put(NONVOL_SENSOR_DIA, 230.0);
-  EEPROM.put(NONVOL_TEST_MODE,    0);
-  
-  EEPROM.get(NONVOL_PAPER_TIME, json_paper_time);
-  EEPROM.put(NONVOL_PAPER_TIME,   0);   // and limit motor on time
-  EEPROM.put(NONVOL_CALIBRE_X10, 45);   // Default to a 4.5mm pellet
-  EEPROM.put(NONVOL_SENSOR_ANGLE,45);   // Default to a 45 degree offset
-  EEPROM.put(NONVOL_NAME_ID,      0);   // Default to no name
-  
-  EEPROM.put(NONVOL_NORTH_X, 0);  
-  EEPROM.put(NONVOL_NORTH_Y, 0);  
-  EEPROM.put(NONVOL_EAST_X,  0);  
-  EEPROM.put(NONVOL_EAST_Y,  0);  
-  EEPROM.put(NONVOL_SOUTH_X, 0);  
-  EEPROM.put(NONVOL_SOUTH_Y, 0);  
-  EEPROM.put(NONVOL_WEST_X,  0);  
-  EEPROM.put(NONVOL_WEST_Y,  0);  
 
-  EEPROM.put(NONVOL_1_RINGx10,  json_1_ring_x10);
+/*
+ * Use the JSON table to initialize the local variables
+ */
+ i=0;
+ while ( JSON[i].token != 0 )
+ {
+   if ( JSON[i].non_vol != 0 )                          // There is a value stored in memory
+   {
+     switch ( JSON[i].convert )
+     {
+        case IS_VOID:
+          break;
+        
+        case IS_INT16:
+          x = JSON[i].init_value;
+          EEPROM.put(JSON[i].non_vol, x);                    // Read in the value
+          break;
 
-  EEPROM.put(NONVOL_POWER_SAVE, 0);
-  EEPROM.put(NONVOL_LED_PWM,    0);
-  EEPROM.put(NONVOL_SEND_MISS,  0);
-  EEPROM.put(NONVOL_MFS,   0xFFFF);       // Multifunction must be configured
+        case IS_FLOAT:
+        case IS_DOUBLE:
+          dx = (double)JSON[i].init_value;
+          EEPROM.put(JSON[i].non_vol, dx);                    // Read in the value
+          break;
+      }
+   }
+   i++;
+ }
+
   
 /*
  * Ask for the serial number.  Exit when you get !

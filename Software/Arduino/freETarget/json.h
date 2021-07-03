@@ -5,12 +5,13 @@
 #define _JSON_H_
 
 typedef struct  {
-  char*           token;    // JSON token string, ex "RADIUS": 
-  int*            value;    // Where value is stored 
-  double*       d_value;    // Where value is stored 
-  unsigned int  convert;    // Conversion type
-  void       (*f)(int x);   // Function to execute with message
-  unsigned int  non_vol;    // Storage in NON-VOL
+  char*             token;    // JSON token string, ex "RADIUS": 
+  int*              value;    // Where value is stored 
+  double*         d_value;    // Where value is stored 
+  unsigned int    convert;    // Conversion type
+  void         (*f)(int x);   // Function to execute with message
+  unsigned int    non_vol;    // Storage in NON-VOL
+  unsigned int init_value;    // Initial Value
 } json_message;
 
 #define IS_VOID    0        // Value is a void

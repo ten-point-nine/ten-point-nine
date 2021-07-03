@@ -473,7 +473,6 @@ void send_score
   int    z;
   double score;
 
-
   if ( is_trace )
   {
     Serial.print("\r\nSending the score");
